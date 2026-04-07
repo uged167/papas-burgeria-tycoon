@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papa's Burgeria Pro: Tycoon Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ==========================================
+           🍔 2.5D 立體食材與醬料 
+           ========================================== */
+        .ingredient { transition: all 0.2s ease-in-out; position: relative; z-index: 10;}
+        .bun_top { width: 140px; height: 70px; background: radial-gradient(ellipse at 50% 20%, #fdb983, #E28743 70%); border-radius: 50% 50% 15% 15% / 70% 70% 20% 20%; box-shadow: inset 0 -6px 0 rgba(166, 81, 15, 0.6), 0 5px 10px rgba(0,0,0,0.4); border: 2px solid #a6510f; margin-bottom: -15px;}
+        .bun_bottom { width: 140px; height: 40px; background: radial-gradient(ellipse at 50% 10%, #fdb983, #E28743 70%); border-radius: 10% 10% 40% 40% / 20% 20% 70% 70%; box-shadow: inset 0 -10px 0 rgba(166, 81, 15, 0.7), 0 5px 10px rgba(0,0,0,0.4); border: 2px solid #a6510f; margin-bottom: 0px; }
+        .cheese { width: 130px; height: 40px; background: #FCD34D; border-radius: 8px; border: 2px solid #d97706; box-shadow: 0 4px 0 #b45309, 0 6px 10px rgba(0,0,0,0.4); transform: rotate(-3deg); margin-bottom: -22px;}
+        .lettuce { width: 150px; height: 40px; background: radial-gradient(ellipse at 50% 20%, #86efac, #4ADE80); border-radius: 40% 60% 50% 40%; box-shadow: 0 6px 0 #166534, inset 0 0 8px #14532d, 0 8px 10px rgba(0,0,0,0.4); border: 2px solid #14532d; transform: rotate(2deg); margin-bottom: -20px;}
+        .tomato { width: 125px; height: 40px; background: radial-gradient(ellipse at top, #f87171, #EF4444); border-radius: 50%; border: 2px solid #991b1b; box-shadow: 0 8px 0 #991b1b, inset 0 0 10px rgba(0,0,0,0.4), 0 10px 10px rgba(0,0,0,0.4); margin-bottom: -20px;}
+        .onion { width: 125px; height: 40px; background: transparent; border-radius: 50%; border: 6px solid #f8fafc; box-shadow: 0 6px 0 #cbd5e1, inset 0 4px 5px rgba(0,0,0,0.2), 0 8px 10px rgba(0,0,0,0.3); margin-bottom: -20px;}
+        .pickle { width: 110px; height: 35px; background: repeating-linear-gradient(45deg, #84cc16, #84cc16 8px, #65a30d 8px, #65a30d 16px); border-radius: 50%; border: 2px solid #3f6212; box-shadow: 0 6px 0 #3f6212, 0 8px 10px rgba(0,0,0,0.4); margin-bottom: -18px;}
+        
+        /* 🥩 5階熟度肉排 CSS */
+        .meat_raw { width: 130px; height: 45px; background: #FCA5A5; border-radius: 50%; border: 2px solid #991b1b; box-shadow: 0 10px 0 #991b1b, 0 12px 10px rgba(0,0,0,0.4); margin-bottom: -15px;}
+        .meat_rare { width: 130px; height: 45px; background: #A0522D; border-radius: 50%; border: 2px solid #5C3A21; box-shadow: inset 0 0 15px #FCA5A5, 0 10px 0 #5C3A21, 0 12px 10px rgba(0,0,0,0.4); margin-bottom: -15px;}
+        .meat_well { width: 130px; height: 45px; background: #5C3A21; border-radius: 50%; border: 2px solid #29180d; box-shadow: 0 10px 0 #29180d, 0 12px 10px rgba(0,0,0,0.5); margin-bottom: -15px; position: relative; overflow: hidden;}
+        .meat_well::after, .meat_charred::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(0,0,0,0.4) 15px, rgba(0,0,0,0.4) 18px); border-radius: 50%; }
+        .meat_charred { width: 130px; height: 45px; background: #3E2723; border-radius: 50%; border: 2px solid #1a0f08; box-shadow: inset 0 0 15px #000, 0 10px 0 #1a0f08, 0 12px 10px rgba(0,0,0,0.6); margin-bottom: -15px; position: relative; overflow: hidden;}
+        .meat_burnt { width: 130px; height: 45px; background: #1e293b; border-radius: 50%; border: 2px solid #000; box-shadow: 0 10px 0 #000, 0 12px 10px rgba(0,0,0,0.6); margin-bottom: -15px;}
+
+        .sauce_ketchup { width: 110px; height: 12px; background: #dc2626; border-radius: 6px; box-shadow: 0 3px 0 #991b1b, 0 4px 5px rgba(0,0,0,0.4); z-index: 5; margin-bottom: -10px; transform: rotate(-2deg);}
+        .sauce_mustard { width: 110px; height: 12px; background: #eab308; border-radius: 6px; box-shadow: 0 3px 0 #a16207, 0 4px 5px rgba(0,0,0,0.4); z-index: 5; margin-bottom: -10px; transform: rotate(3deg);}
+        .sauce_mayo { width: 110px; height: 12px; background: #f8fafc; border-radius: 6px; box-shadow: 0 3px 0 #94a3b8, 0 4px 5px rgba(0,0,0,0.4); z-index: 5; margin-bottom: -10px; transform: rotate(-1deg);}
+        .sauce_bbq { width: 110px; height: 12px; background: #451a03; border-radius: 6px; box-shadow: 0 3px 0 #290f02, 0 4px 5px rgba(0,0,0,0.4); z-index: 5; margin-bottom: -10px; transform: rotate(2deg);}
+
+        .plate-base { width: 220px; height: 40px; background: #e5e7eb; border-radius: 50%; border: 4px solid #d1d5db; box-shadow: 0 10px 0 #9ca3af, 0 15px 15px rgba(0,0,0,0.5); position: absolute; bottom: -10px; z-index: 0; left: 50%; transform: translateX(-50%);}
+
+        /* ====================
+           UI 與 站點樣式
+           ==================== */
+        .game-window { position: relative; width: 100%; min-width: 900px; height: 80vh; min-height: 600px; background-color: #fff; overflow: hidden; border: 4px solid #1f2937; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .station-container { position: absolute; top: 40px; bottom: 64px; left: 0; right: 0; }
+        
+        .nav-bar { position: absolute; bottom: 0; width: 100%; height: 64px; background-color: #1f2937; display: flex; justify-content: center; gap: 10px; padding: 8px; z-index: 50; border-top: 4px solid #000;}
+        .nav-btn { flex: 1; max-w: 200px; border-radius: 8px; font-weight: 900; font-size: 1.1rem; color: white; border-bottom: 4px solid rgba(0,0,0,0.3); transition: all 0.1s;}
+        .nav-btn:active { border-bottom: 0px; transform: translateY(4px); }
+        .nav-btn.active { opacity: 1; filter: brightness(1.2); border-bottom: 0px; transform: translateY(4px);}
+        .nav-btn-order { background-color: #22c55e; }
+        .nav-btn-grill { background-color: #f97316; }
+        .nav-btn-build { background-color: #3b82f6; }
+
+        .ticket-line { position: absolute; top: 0; width: 100%; height: 40px; background-color: #e5e7eb; border-bottom: 2px solid #9ca3af; z-index: 40;}
+        .ticket-wire { width: 100%; height: 2px; background-color: #4b5563; position: absolute; top: 20px;}
+        .ticket-tab { width: 45px; height: 35px; background: white; border: 2px solid #9ca3af; border-top: 0; position: relative; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; font-weight: 900; color: #4b5563; transition: transform 0.1s; transform-origin: top; box-shadow: 2px 2px 4px rgba(0,0,0,0.2);}
+        .ticket-tab:hover { background: #f3f4f6; }
+        .ticket-tab.active { transform: scale(1.1); background: #fef3c7; border-color: #f59e0b; color: #b45309; z-index: 50; box-shadow: 0 4px 10px rgba(0,0,0,0.3);}
+        
+        .ticket-strip { position: absolute; right: 20px; top: 20px; width: 150px; background: repeating-linear-gradient(180deg, #ffe4e1, #ffe4e1 30px, #ffffff 30px, #ffffff 60px); box-shadow: -2px 2px 8px rgba(0,0,0,0.3); border-left: 2px solid #ccc; border-right: 2px solid #ccc; z-index: 45; transition: transform 0.3s ease-in-out;}
+        .ticket-strip.hidden-ticket { transform: translateY(-85%); }
+        .ticket-pin { width: 12px; height: 12px; background-color: #374151; border-radius: 50%; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5);}
+
+        .order-bg { background: radial-gradient(circle at 50% 50%, #fef3c7 0%, #f59e0b 100%); }
+        .counter-desk { position: absolute; bottom: 0; width: 100%; height: 35%; background: linear-gradient(to bottom, #4ade80, #16a34a); border-top: 8px solid #14532d; }
+        .register { position: absolute; bottom: 10%; right: 10%; width: 160px; height: 150px; background-color: #4b5563; border-radius: 10px 10px 0 0; border: 4px solid #1f2937; }
+        
+        .speech-bubble-small { animation: bounce 1s infinite alternate; box-shadow: 2px 2px 0 rgba(0,0,0,0.2); }
+        .speech-bubble-small::after { content: ''; position: absolute; bottom: -8px; left: 10px; border-width: 8px 8px 0 0; border-style: solid; border-color: #1f2937 transparent transparent transparent; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+        .grill-bg { background-color: #d1d5db; }
+        .grill-pan-large { width: 100%; height: 100%; background: repeating-linear-gradient(90deg, #6b7280, #6b7280 10px, #4b5563 10px, #4b5563 15px); border-radius: 15px; box-shadow: inset 0 10px 30px rgba(0,0,0,0.6); border: 8px solid #1f2937; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); padding: 15px; gap: 8px;}
+        .raw-meat-stack { width: 120px; height: 120px; cursor: pointer; transition: transform 0.1s; position: relative;}
+        .raw-meat-stack:active { transform: scale(0.95); }
+        .patty-paper { width: 110px; height: 110px; background-color: #fdfbf7; position: absolute; bottom: 0; left: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); transform: rotate(-5deg);}
+        .patty-paper:nth-child(2) { transform: rotate(3deg); bottom: 10px; }
+        .patty-top { width: 100px; height: 100px; background-color: #FCA5A5; border-radius: 50%; position: absolute; bottom: 20px; left: 10px; box-shadow: inset 0 0 10px #DC2626;}
+        
+        .grill-patty { width: 100px; height: 55px; border-radius: 50%; cursor: pointer; position: relative; margin: auto; transition: transform 0.1s; border: 2px solid #000; box-shadow: 0 8px 0 #000, 0 12px 10px rgba(0,0,0,0.6);}
+        .grill-patty:hover { transform: scale(1.05); }
+        .grill-slot-empty { width: 100px; height: 55px; border-radius: 50%; margin: auto; border: 2px dashed rgba(255,255,255,0.2); }
+        
+        .cook-bar-container { position: absolute; bottom: -20px; left: 5%; width: 90%; height: 8px; background: white; border-radius: 4px; overflow: hidden; border: 2px solid #374151;}
+        .cook-bar { height: 100%; width: 0%; background: #3b82f6; transition: width 0.1s linear, background-color 0.3s;}
+
+        .build-bg { background: radial-gradient(circle at 50% 30%, #7dbbf0 0%, #4489d8 50%, #25589c 100%); }
+        .spotlight { background: linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%); clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%); }
+        .counter-top { background: linear-gradient(to bottom, #7a7a7a 0%, #555555 100%); border-top: 4px solid #333; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
+        .shelf-item { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.1s; padding-top: 15px;}
+        .shelf-item:hover { transform: scale(1.05) translateX(5px); }
+        .shelf-board { width: 100%; height: 12px; background-color: #4b5563; border-bottom: 4px solid #1f2937; box-shadow: 0 4px 6px rgba(0,0,0,0.4); pointer-events: none; }
+        
+        .sauce-wall-shelf { position: absolute; top: 15%; right: 12%; background: linear-gradient(to bottom, #4b5563, #374151); padding: 15px 20px 10px 20px; border-radius: 12px; border-bottom: 6px solid #1f2937; box-shadow: 0 15px 25px rgba(0,0,0,0.5); display: flex; gap: 15px; z-index: 20; }
+        .bottle { width: 45px; height: 100px; border-radius: 12px 12px 4px 4px; position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; box-shadow: inset -8px 0 10px rgba(0,0,0,0.2), 3px 3px 6px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        .bottle:hover { transform: translateY(-5px) scale(1.05); }
+        .cap { width: 18px; height: 15px; margin-top: -15px; border-radius: 2px 2px 0 0; }
+        .nozzle { width: 8px; height: 18px; margin-top: -18px; border-radius: 4px 4px 0 0; }
+        
+        .trash-hole { width: 100px; height: 40px; background: radial-gradient(ellipse at center, #000 40%, #222 100%); border-radius: 100%; box-shadow: inset 0 -3px 8px rgba(255,255,255,0.2), 0 3px 5px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.1s;}
+        .trash-hole:hover { transform: scale(1.05); }
+
+        .feedback-anim { animation: floatUpFade 2.5s ease-in-out forwards; }
+        @keyframes floatUpFade { 
+            0% { opacity: 0; transform: translate(-50%, 20px) scale(0.8); } 
+            10% { opacity: 1; transform: translate(-50%, 0) scale(1.1); } 
+            20% { opacity: 1; transform: translate(-50%, 0) scale(1); } 
+            80% { opacity: 1; transform: translate(-50%, -20px) scale(1); } 
+            100% { opacity: 0; transform: translate(-50%, -40px) scale(0.9); } 
+        }
+
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+        .shop-item { background: #f3f4f6; border: 2px solid #d1d5db; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s; }
+        .shop-item:hover:not(.locked) { border-color: #f59e0b; background: #fef3c7; transform: translateY(-3px); }
+        .shop-item.owned { opacity: 0.5; cursor: not-allowed; border-color: #22c55e; background: #dcfce7; }
+        .shop-item.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen font-sans text-gray-800 flex flex-col items-center">
+
+    <header class="w-full max-w-6xl bg-orange-600 text-white p-3 shadow-md flex justify-between items-center z-30 mt-2 rounded-t-xl">
+        <h1 class="text-xl font-bold" data-i18n="title">🍔 Papa's Burgeria: Tycoon Edition</h1>
+        <div id="game-stats" class="hidden flex gap-6 text-base font-black bg-orange-800 px-6 py-1 rounded-full shadow-inner border border-orange-900">
+            <div class="text-green-300">💵 $<span id="money-display">0.00</span></div>
+            <div class="text-white border-l border-orange-700 pl-4"><span data-i18n="dayDisplay">Day </span><span id="day-display">1</span></div>
+        </div>
+        <div class="flex gap-3 items-center">
+            <span id="user-display" class="font-semibold hidden"></span>
+            <button id="btn-force-end" onclick="forceEndDay(this)" class="hidden bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded shadow-sm border border-red-800 text-sm font-bold transition" data-i18n="forceEnd">🛑 結束營業</button>
+            <button onclick="toggleLanguage()" class="bg-orange-700 hover:bg-orange-800 px-3 py-1 rounded text-sm transition">🌐 <span id="lang-btn">English</span></button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-6xl relative">
+        
+        <div id="menu-screens" class="p-8 bg-white/10 rounded-b-xl min-h-[600px] flex items-center justify-center">
+            
+            <section id="screen-login" class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+                <h2 class="text-2xl mb-6 font-bold text-orange-600" data-i18n="welcome">歡迎來到漢堡店！</h2>
+                
+                <input type="text" id="username-input" class="border-2 border-orange-300 p-2 rounded w-full mb-3 focus:outline-none focus:border-orange-500" placeholder="帳號 / Username">
+                <input type="password" id="password-input" class="border-2 border-orange-300 p-2 rounded w-full mb-4 focus:outline-none focus:border-orange-500" placeholder="密碼 / Password">
+                
+                <div id="login-msg" class="hidden font-bold p-2 rounded mb-4 text-sm border"></div>
+                
+                <button id="btn-login" onclick="login()" class="bg-green-500 hover:bg-green-600 text-white w-full py-2 rounded font-bold transition text-lg" data-i18n="loginBtn">登入 / 註冊</button>
+                <p class="text-xs text-gray-500 mt-4" data-i18n="loginHint">若為新帳號將自動註冊。密碼可保護您的存檔不被覆蓋。</p>
+            </section>
+
+            <section id="screen-menu" class="hidden bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+                <h2 class="text-3xl mb-2 font-black text-orange-600" data-i18n="mainMenu">主選單</h2>
+                <div class="text-xl font-bold mb-6 text-gray-500">Day <span id="menu-day">1</span></div>
+                <div class="flex flex-col gap-4">
+                    <button onclick="startDay()" class="bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-bold text-xl transition" data-i18n="startOrder">☀️ 開始新的一天</button>
+                    <button onclick="openShop()" class="bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-bold text-xl transition" data-i18n="shopBtn">🛒 升級商店</button>
+                    <button onclick="logout()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg font-bold text-xl transition mt-4" data-i18n="logout">登出</button>
+                </div>
+            </section>
+
+            <section id="screen-day-end" class="hidden bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
+                <h2 class="text-3xl mb-2 font-bold text-blue-600" data-i18n="dayEndTitle">營業結束！</h2>
+                <p class="text-gray-500 mb-6 font-bold text-lg">Day <span id="result-day">1</span></p>
+                <div class="bg-gray-100 rounded-lg p-4 mb-6 text-left">
+                    <div class="flex justify-between mb-2"><span data-i18n="customersServed">服務客流:</span> <span id="res-customers" class="font-bold">0</span></div>
+                    <div class="flex justify-between mb-2 text-green-600 text-xl font-black border-t pt-2"><span data-i18n="todayRevenue">今日營業額:</span> <span id="res-revenue">+$0.00</span></div>
+                </div>
+                <div class="text-2xl font-black text-gray-800 mb-6 border-2 border-gray-300 rounded p-2 bg-yellow-50"><span data-i18n="totalMoney">總資金: $</span><span id="res-total-money">0.00</span></div>
+                
+                <div id="loading-db" class="text-sm text-blue-500 mb-4 hidden" data-i18n="saving">雲端存檔中... / Saving...</div>
+                <div class="flex flex-col gap-2">
+                    <button onclick="openShop()" class="bg-purple-500 hover:bg-purple-600 text-white py-2 rounded font-bold" data-i18n="shopBtn">前往商店</button>
+                    <button onclick="showMenu()" class="bg-gray-300 hover:bg-gray-400 py-2 rounded font-bold" data-i18n="backToMenu">回主選單</button>
+                </div>
+            </section>
+
+            <section id="screen-shop" class="hidden bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl text-center">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 class="text-2xl font-black text-purple-600" data-i18n="shopTitle">食材與升級商店</h2>
+                    <div class="text-xl font-bold text-green-600 bg-green-100 px-4 py-1 rounded">💵 $<span id="shop-money">0.00</span></div>
+                </div>
+                <div id="shop-container" class="shop-grid mb-6"></div>
+                <button onclick="showMenu()" class="bg-gray-300 hover:bg-gray-400 py-2 px-8 rounded font-bold w-full" data-i18n="backToMenu">回主選單</button>
+            </section>
+        </div>
+
+        <div id="screen-game" class="hidden game-window">
+            
+            <div class="ticket-line">
+                <div class="ticket-wire"></div>
+                <div id="tickets-container" class="absolute w-full h-full flex px-10 gap-2 overflow-x-auto items-end pt-2"></div>
+                
+                <div id="active-ticket" class="ticket-strip hidden flex flex-col items-center py-4 pb-8 rounded-b-lg">
+                    <div class="ticket-pin"></div>
+                    <div class="text-xl font-black text-red-400 mb-2 border-b-2 border-red-200 w-full text-center pb-1" id="ticket-id">01</div>
+                    <ul id="order-list" class="flex flex-col w-full items-center gap-1 pointer-events-none"></ul>
+                    <button onclick="toggleTicket()" class="absolute bottom-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-1 rounded-full shadow border border-gray-400 font-bold z-50">▲/🔽</button>
+                </div>
+            </div>
+
+            <div id="station-order" class="station-container order-bg">
+                <div id="customers-queue" class="absolute bottom-[35%] w-full flex justify-center gap-8 px-10 z-10"></div>
+                <div class="counter-desk">
+                    <div class="register flex flex-col justify-end p-2">
+                        <div class="bg-green-200 h-8 mb-2 rounded border-2 border-gray-600 font-mono text-right px-1 font-bold text-lg text-green-900">$<span id="register-money">0.00</span></div>
+                        <div class="grid grid-cols-3 gap-1">
+                            <div class="bg-gray-400 h-6 rounded"></div><div class="bg-gray-400 h-6 rounded"></div><div class="bg-gray-400 h-6 rounded"></div>
+                            <div class="bg-gray-400 h-6 rounded"></div><div class="bg-gray-400 h-6 rounded"></div><div class="bg-gray-400 h-6 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="waiting-msg" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl font-bold text-orange-800 bg-white/80 px-6 py-2 rounded-full shadow-lg border-2 border-orange-300" data-i18n="waitingCustomer">等待下一位客人...</div>
+            </div>
+
+            <div id="station-grill" class="station-container grill-bg hidden flex px-6 py-6 gap-6 items-center">
+                
+                <div class="w-48 flex flex-col gap-8 items-center shrink-0">
+                    <div class="bg-gray-800 border-4 border-gray-600 rounded-xl p-3 flex flex-col gap-3 shadow-2xl w-full">
+                        <div class="text-white text-sm font-black text-center border-b-2 border-gray-500 pb-2 mb-1" data-i18n="donenessGuide">熟度指南</div>
+                        <div class="flex items-center gap-3"><div class="w-5 h-5 rounded-full bg-[#FCA5A5] border border-white"></div><span class="text-xs font-bold text-gray-300">生肉 (0-5s)</span></div>
+                        <div class="flex items-center gap-3"><div class="w-5 h-5 rounded-full bg-[#A0522D] border border-white"></div><span class="text-sm font-bold text-pink-300">🕒 微熟</span></div>
+                        <div class="flex items-center gap-3"><div class="w-5 h-5 rounded-full bg-[#5C3A21] border border-white shadow-[0_0_8px_#4ade80]"></div><span class="text-sm font-bold text-green-400">🕕 全熟</span></div>
+                        <div class="flex items-center gap-3"><div class="w-5 h-5 rounded-full bg-[#3E2723] border border-white"></div><span class="text-sm font-bold text-orange-400">🕘 稍焦</span></div>
+                        <div class="flex items-center gap-3"><div class="w-5 h-5 rounded-full bg-[#1e293b] border border-white"></div><span class="text-xs font-bold text-gray-500">燒焦 (>20s)</span></div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <div class="raw-meat-stack" onclick="addRawMeat()">
+                            <div class="patty-paper"></div><div class="patty-paper"></div>
+                            <div class="patty-top"></div>
+                        </div>
+                        <div class="text-gray-800 font-bold bg-white/70 px-3 py-1 rounded mt-4 text-sm text-center border-2 border-gray-400" data-i18n="clickMeatHint">點擊生肉疊放上烤爐</div>
+                    </div>
+                </div>
+
+                <div class="flex-1 h-full max-h-[450px]">
+                    <div class="grill-pan-large" id="grill-spots"></div>
+                </div>
+            </div>
+
+            <div id="station-build" class="station-container build-bg hidden">
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-80 h-full spotlight z-0"></div>
+
+                <div class="sauce-wall-shelf">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 text-white font-black text-[11px] tracking-widest bg-gray-800 px-3 py-1 rounded-full shadow border-2 border-gray-600 uppercase">SAUCES</div>
+                    <div id="bottle-sauce_ketchup" class="bottle bg-red-600 hidden" onclick="addIngredient('sauce_ketchup')"><div class="nozzle bg-gray-200"></div><div class="cap bg-red-800"></div></div>
+                    <div id="bottle-sauce_mustard" class="bottle bg-yellow-500 hidden" onclick="addIngredient('sauce_mustard')"><div class="nozzle bg-gray-200"></div><div class="cap bg-yellow-700"></div></div>
+                    <div id="bottle-sauce_mayo" class="bottle bg-gray-100 hidden" onclick="addIngredient('sauce_mayo')"><div class="nozzle bg-gray-300"></div><div class="cap bg-gray-400"></div></div>
+                    <div id="bottle-sauce_bbq" class="bottle bg-[#5C3A21] hidden" onclick="addIngredient('sauce_bbq')"><div class="nozzle bg-gray-300"></div><div class="cap bg-[#3b2515]"></div></div>
+                </div>
+
+                <div class="absolute bottom-0 w-full h-36 counter-top z-30 flex items-center justify-between px-8 shadow-[0_-10px_20px_rgba(0,0,0,0.3)] pointer-events-auto">
+                    
+                    <div class="flex gap-1 sm:gap-2 ml-2 relative z-50">
+                        <div class="relative cursor-pointer flex flex-col items-center group p-2 hover:bg-gray-700/30 rounded-xl transition" onclick="takeCookedMeat('meat_raw')">
+                            <span class="text-[12px] text-gray-300 font-bold mb-1">生肉</span>
+                            <div id="plate-meat_raw" class="w-14 h-10 sm:w-16 sm:h-12 bg-gray-300 rounded-[100%] border-2 border-gray-500 shadow-md flex justify-center items-center group-hover:bg-gray-200 transition opacity-50">
+                                <div class="meat_raw scale-[0.35] -mt-6 shadow-lg"></div>
+                            </div>
+                            <span id="count-meat_raw" class="absolute top-0 right-0 bg-red-600 text-white text-[12px] font-black rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-xl z-20">0</span>
+                        </div>
+                        <div class="relative cursor-pointer flex flex-col items-center group p-2 hover:bg-gray-700/30 rounded-xl transition" onclick="takeCookedMeat('meat_rare')">
+                            <span class="text-[12px] text-pink-300 font-bold mb-1">微熟</span>
+                            <div id="plate-meat_rare" class="w-14 h-10 sm:w-16 sm:h-12 bg-gray-300 rounded-[100%] border-2 border-gray-500 shadow-md flex justify-center items-center group-hover:bg-gray-200 transition opacity-50">
+                                <div class="meat_rare scale-[0.35] -mt-6 shadow-lg"></div>
+                            </div>
+                            <span id="count-meat_rare" class="absolute top-0 right-0 bg-red-600 text-white text-[12px] font-black rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-xl z-20">0</span>
+                        </div>
+                        <div class="relative cursor-pointer flex flex-col items-center group p-2 hover:bg-gray-700/30 rounded-xl transition" onclick="takeCookedMeat('meat_well')">
+                            <span class="text-[12px] text-green-400 font-bold mb-1">全熟</span>
+                            <div id="plate-meat_well" class="w-14 h-10 sm:w-16 sm:h-12 bg-gray-300 rounded-[100%] border-2 border-gray-500 shadow-md flex justify-center items-center group-hover:bg-gray-200 transition opacity-50">
+                                <div class="meat_well scale-[0.35] -mt-6 shadow-lg"></div>
+                            </div>
+                            <span id="count-meat_well" class="absolute top-0 right-0 bg-red-600 text-white text-[12px] font-black rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-xl z-20">0</span>
+                        </div>
+                        <div class="relative cursor-pointer flex flex-col items-center group p-2 hover:bg-gray-700/30 rounded-xl transition" onclick="takeCookedMeat('meat_charred')">
+                            <span class="text-[12px] text-orange-400 font-bold mb-1">稍焦</span>
+                            <div id="plate-meat_charred" class="w-14 h-10 sm:w-16 sm:h-12 bg-gray-300 rounded-[100%] border-2 border-gray-500 shadow-md flex justify-center items-center group-hover:bg-gray-200 transition opacity-50">
+                                <div class="meat_charred scale-[0.35] -mt-6 shadow-lg"></div>
+                            </div>
+                            <span id="count-meat_charred" class="absolute top-0 right-0 bg-red-600 text-white text-[12px] font-black rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-xl z-20">0</span>
+                        </div>
+                        <div class="relative cursor-pointer flex flex-col items-center group p-2 hover:bg-gray-700/30 rounded-xl transition" onclick="takeCookedMeat('meat_burnt')">
+                            <span class="text-[12px] text-gray-400 font-bold mb-1">燒焦</span>
+                            <div id="plate-meat_burnt" class="w-14 h-10 sm:w-16 sm:h-12 bg-gray-300 rounded-[100%] border-2 border-gray-500 shadow-md flex justify-center items-center group-hover:bg-gray-200 transition opacity-50">
+                                <div class="meat_burnt scale-[0.35] -mt-6 shadow-lg"></div>
+                            </div>
+                            <span id="count-meat_burnt" class="absolute top-0 right-0 bg-red-600 text-white text-[12px] font-black rounded-full w-6 h-6 flex items-center justify-center border-2 border-white shadow-xl z-20">0</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-8 relative z-50 mr-2">
+                        <div class="trash-hole relative group cursor-pointer" onclick="clearBurger()">
+                            <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 text-white text-sm opacity-0 group-hover:opacity-100 transition whitespace-nowrap bg-black/70 px-2 py-1 rounded" data-i18n="trash">丟棄重做</div>
+                        </div>
+                        <button onclick="serveBurger()" class="bg-green-500 text-white px-8 py-5 rounded-xl font-black text-2xl hover:bg-green-600 shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1" data-i18n="serve">🛎️ 出餐</button>
+                    </div>
+                </div>
+
+                <div class="absolute left-0 top-0 h-full w-40 flex flex-col justify-end pb-40 z-20 pointer-events-none">
+                    <div class="shelf-item pointer-events-auto" onclick="addIngredient('bun_top')"><div class="bun_top scale-[0.55] origin-bottom mb-2"></div><div class="shelf-board"></div></div>
+                    <div id="shelf-tomato" class="shelf-item hidden pointer-events-auto" onclick="addIngredient('tomato')"><div class="tomato scale-[0.65] origin-bottom mb-4"></div><div class="shelf-board"></div></div>
+                    <div id="shelf-lettuce" class="shelf-item hidden pointer-events-auto" onclick="addIngredient('lettuce')"><div class="lettuce scale-[0.65] origin-bottom mb-4"></div><div class="shelf-board"></div></div>
+                    <div id="shelf-onion" class="shelf-item hidden pointer-events-auto" onclick="addIngredient('onion')"><div class="onion scale-[0.65] origin-bottom mb-4"></div><div class="shelf-board"></div></div>
+                    <div id="shelf-pickle" class="shelf-item hidden pointer-events-auto" onclick="addIngredient('pickle')"><div class="pickle scale-[0.65] origin-bottom mb-4"></div><div class="shelf-board"></div></div>
+                    <div id="shelf-cheese" class="shelf-item hidden pointer-events-auto" onclick="addIngredient('cheese')"><div class="cheese scale-[0.65] origin-bottom mb-4"></div><div class="shelf-board"></div></div>
+                    <div class="shelf-item pointer-events-auto" onclick="addIngredient('bun_bottom')"><div class="bun_bottom scale-[0.55] origin-bottom mb-2"></div><div class="shelf-board"></div></div>
+                </div>
+
+                <div id="game-board" class="absolute bottom-[115px] left-1/2 transform -translate-x-1/2 flex flex-col-reverse items-center z-40 w-full pointer-events-none">
+                    <div class="plate-base"></div>
+                    <div id="feedback-popup" class="absolute bottom-40 left-1/2 transform -translate-x-1/2 z-50 opacity-0 pointer-events-none"></div>
+                    <div id="burger-stack" class="flex flex-col-reverse items-center z-10 relative pb-2"></div>
+                </div>
+            </div>
+
+            <div class="nav-bar">
+                <button id="tab-order" class="nav-btn nav-btn-order active flex flex-col items-center justify-center" onclick="switchStation('order')"><span class="text-xs opacity-80" data-i18n="tabOrder">Station 1</span>Order</button>
+                <button id="tab-grill" class="nav-btn nav-btn-grill flex flex-col items-center justify-center" onclick="switchStation('grill')"><span class="text-xs opacity-80" data-i18n="tabGrill">Station 2</span>Grill</button>
+                <button id="tab-build" class="nav-btn nav-btn-build flex flex-col items-center justify-center" onclick="switchStation('build')"><span class="text-xs opacity-80" data-i18n="tabBuild">Station 3</span>Build</button>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // 🌟 變數與設定
+        // ==========================================
+        const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzWLzcbfBVQK4m1XBCcBfvzyuT4p-nHuKi_tPFLnJBeiZMenKqsKjz-ET9f9ZwEM14/exec"; 
+        
+        const state = {
+            username: "", accountId: "", password: "", lang: "zh",
+            money: 0, day: 1, moneyEarnedToday: 0,
+            
+            grillPatties: Array(12).fill(null), 
+            meatInventory: { meat_raw: 0, meat_rare: 0, meat_well: 0, meat_charred: 0, meat_burnt: 0 }, 
+            nextPattyId: 0,
+            
+            waitingCustomers: [], activeOrders: [], currentViewingOrderId: null,
+            customersToday: 0, customersSpawned: 0, customersServed: 0, globalTicketCount: 1,
+            
+            timerInterval: null, customerTimer: null, playerBurger: [], isSpawningCustomer: false,
+            isTicketHidden: false, 
+            
+            unlocked: ['cheese', 'lettuce'],
+            shopItems: [
+                { id: 'tomato', type: 'ingredient', price: 15, name: {zh: "番茄", en: "Tomato"}, uiClass: "tomato scale-[0.6]" },
+                { id: 'onion', type: 'ingredient', price: 20, name: {zh: "洋蔥", en: "Onion"}, uiClass: "onion scale-[0.6]" },
+                { id: 'pickle', type: 'ingredient', price: 20, name: {zh: "酸黃瓜", en: "Pickle"}, uiClass: "pickle scale-[0.6]" },
+                { id: 'sauce_ketchup', type: 'sauce', price: 25, name: {zh: "番茄醬", en: "Ketchup"}, uiClass: "sauce_ketchup scale-[0.5]" },
+                { id: 'sauce_mustard', type: 'sauce', price: 25, name: {zh: "黃芥末", en: "Mustard"}, uiClass: "sauce_mustard scale-[0.5]" },
+                { id: 'sauce_mayo', type: 'sauce', price: 30, name: {zh: "美乃滋", en: "Mayo"}, uiClass: "sauce_mayo scale-[0.5]" },
+                { id: 'sauce_bbq', type: 'sauce', price: 40, name: {zh: "烤肉醬", en: "BBQ Sauce"}, uiClass: "sauce_bbq scale-[0.5]" }
+            ]
+        };
+
+        const ingredientsMap = {
+            bun_bottom: { zh: "下層麵包", en: "Bottom Bun", uiClass: "bun_bottom scale-[0.3]" },
+            meat_raw: { zh: "生肉排", en: "Raw Patty", uiClass: "meat_raw scale-[0.35]", overlay: "" },
+            meat_rare: { zh: "微熟肉排", en: "Rare Patty", uiClass: "meat_rare scale-[0.35]", overlay: "🕒", label: {zh: "[微熟]", en: "[Rare]"} },
+            meat_well: { zh: "全熟肉排", en: "Well Patty", uiClass: "meat_well scale-[0.35]", overlay: "🕕", label: {zh: "[全熟]", en: "[Well]"} },
+            meat_charred: { zh: "稍焦肉排", en: "Charred Patty", uiClass: "meat_charred scale-[0.35]", overlay: "🕘", label: {zh: "[稍焦]", en: "[Char]"} },
+            meat_burnt: { zh: "燒焦肉排", en: "Burnt Patty", uiClass: "meat_burnt scale-[0.35]", overlay: "" },
+            
+            cheese: { zh: "起司", en: "Cheese", uiClass: "cheese scale-[0.35]" },
+            lettuce: { zh: "生菜", en: "Lettuce", uiClass: "lettuce scale-[0.35]" },
+            tomato: { zh: "番茄", en: "Tomato", uiClass: "tomato scale-[0.35]" },
+            onion: { zh: "洋蔥", en: "Onion", uiClass: "onion scale-[0.35]" },     
+            pickle: { zh: "酸黃瓜", en: "Pickles", uiClass: "pickle scale-[0.35]" }, 
+            sauce_ketchup: { zh: "番茄醬", en: "Ketchup", uiClass: "sauce_ketchup scale-[0.4]" },
+            sauce_mustard: { zh: "黃芥末", en: "Mustard", uiClass: "sauce_mustard scale-[0.4]" },
+            sauce_mayo: { zh: "美乃滋", en: "Mayo", uiClass: "sauce_mayo scale-[0.4]" },
+            sauce_bbq: { zh: "烤肉醬", en: "BBQ Sauce", uiClass: "sauce_bbq scale-[0.4]" },
+            bun_top: { zh: "上層麵包", en: "Top Bun", uiClass: "bun_top scale-[0.3]" }
+        };
+
+        const i18n = {
+            zh: {
+                title: "🍔 老爹漢堡店: 大亨版", welcome: "歡迎！", loginBtn: "登入 / 註冊", loginHint: "若為新帳號將自動註冊。密碼可保護您的存檔不被覆蓋。",
+                mainMenu: "主選單", startOrder: "☀️ 開始新的一天", shopBtn: "🛒 前往商店", logout: "登出",
+                dayDisplay: "Day ", dayEndTitle: "營業結束！", customersServed: "服務客流:", todayRevenue: "今日營業額:", totalMoney: "總資金: $",
+                shopTitle: "食材與升級商店", buy: "購買", owned: "已擁有", locked: "資金不足",
+                tabOrder: "點餐台", tabGrill: "煎肉台", tabBuild: "組裝台",
+                takeOrderBtn: "📝 點餐！", waitingCustomer: "等待下一位客人...", clickMeatHint: "點擊生肉放上烤爐", trash: "丟棄", serve: "🛎️ 出餐",
+                gameOverTitle: "Game Over!", playAgain: "重新挑戰", backToMenu: "回主選單",
+                scoreBuild: "組裝", scoreGrill: "烤肉", scoreOrder: "服務", tipIs: "小費", donenessGuide: "熟度指南", emptyBurgerWarning: "不能出空餐盤！", forceEnd: "🛑 結束營業"
+            },
+            en: {
+                title: "🍔 Papa's Burgeria: Tycoon", welcome: "Welcome!", loginBtn: "Login / Register", loginHint: "New users auto-register. Password protects your save data.",
+                mainMenu: "Main Menu", startOrder: "☀️ Start New Day", shopBtn: "🛒 Shop", logout: "Logout",
+                dayDisplay: "Day ", dayEndTitle: "Shift Ended!", customersServed: "Customers:", todayRevenue: "Today's Revenue:", totalMoney: "Total Money: $",
+                shopTitle: "Upgrades & Ingredients", buy: "Buy", owned: "Owned", locked: "Not Enough",
+                tabOrder: "Order", tabGrill: "Grill", tabBuild: "Build",
+                takeOrderBtn: "📝 Take Order!", waitingCustomer: "Waiting for next...", clickMeatHint: "Click meat to grill", trash: "Trash", serve: "🛎️ Serve",
+                gameOverTitle: "Game Over!", playAgain: "Play Again", backToMenu: "Menu",
+                scoreBuild: "Build", scoreGrill: "Grill", scoreOrder: "Service", tipIs: "Tip", donenessGuide: "Doneness", emptyBurgerWarning: "Cannot Serve Empty Plate!", forceEnd: "🛑 End Day"
+            }
+        };
+
+        // ==========================================
+        // 🌟 流程與介面控制 & 雲端存取
+        // ==========================================
+        function toggleLanguage() { state.lang = state.lang === 'zh' ? 'en' : 'zh'; document.getElementById('lang-btn').innerText = state.lang === 'zh' ? 'English' : '中文'; updateLanguageUI(); }
+        function updateLanguageUI() { document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (i18n[state.lang][key]) { if (el.tagName === 'INPUT') el.placeholder = i18n[state.lang][key]; else el.innerHTML = i18n[state.lang][key]; }}); }
+
+        async function login() {
+            const n = document.getElementById('username-input').value.trim(); 
+            const p = document.getElementById('password-input').value.trim();
+            const msgEl = document.getElementById('login-msg');
+            
+            msgEl.className = "hidden font-bold p-2 rounded mb-4 text-sm border";
+            
+            if (!n || !p) {
+                msgEl.innerText = state.lang === 'zh' ? "請輸入帳號與密碼！" : "Please enter username and password!";
+                msgEl.classList.add('bg-red-100', 'text-red-600', 'border-red-300');
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            if (/^\d+$/.test(n)) {
+                msgEl.innerText = state.lang === 'zh' ? "帳號不能為純數字！" : "Username cannot be purely numbers!";
+                msgEl.classList.add('bg-red-100', 'text-red-600', 'border-red-300');
+                msgEl.classList.remove('hidden');
+                return;
+            }
+            
+            const accountId = n.toLowerCase(); 
+            
+            const loginBtn = document.getElementById('btn-login');
+            loginBtn.innerText = state.lang === 'zh' ? "雲端處理中..." : "Loading DB...";
+            loginBtn.disabled = true;
+
+            try {
+                if (GOOGLE_SHEET_API_URL) {
+                    const res = await fetch(`${GOOGLE_SHEET_API_URL}?action=login&name=${encodeURIComponent(accountId)}&display=${encodeURIComponent(n)}&password=${encodeURIComponent(p)}`);
+                    const data = await res.json();
+                    
+                    if (data.error === "wrong_password") {
+                        msgEl.innerText = state.lang === 'zh' ? "此帳號已被註冊！密碼錯誤。" : "Account taken! Wrong password.";
+                        msgEl.classList.add('bg-red-100', 'text-red-600', 'border-red-300');
+                        msgEl.classList.remove('hidden');
+                        loginBtn.innerText = i18n[state.lang].loginBtn;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+                    
+                    state.username = data.display || n;
+                    state.accountId = accountId;
+                    state.password = p;
+                    
+                    if (data.exists) {
+                        msgEl.innerText = state.lang === 'zh' ? "✅ 登入成功！讀取進度中..." : "✅ Login successful!";
+                        msgEl.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                        state.money = Number(data.money) || 0;
+                        state.day = Number(data.day) || 1;
+                        try { state.unlocked = data.unlocked ? JSON.parse(data.unlocked) : ['cheese', 'lettuce']; } 
+                        catch(e) { state.unlocked = ['cheese', 'lettuce']; }
+                    } else {
+                        msgEl.innerText = state.lang === 'zh' ? "🎉 新帳號註冊成功！" : "🎉 Registered successfully!";
+                        msgEl.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-300');
+                        state.money = 0; state.day = 1; state.unlocked = ['cheese', 'lettuce'];
+                    }
+                } else {
+                    state.username = n; state.accountId = accountId; state.password = p; state.money = 0; state.day = 1; state.unlocked = ['cheese', 'lettuce'];
+                    msgEl.innerText = state.lang === 'zh' ? "⚠️ 離線模式登入 (無資料庫)" : "⚠️ Offline Mode";
+                    msgEl.classList.add('bg-yellow-100', 'text-yellow-700', 'border-yellow-300');
+                }
+                
+                msgEl.classList.remove('hidden');
+                document.getElementById('user-display').innerText = `👤 ${state.username}`; 
+                document.getElementById('user-display').classList.remove('hidden');
+                
+                setTimeout(() => {
+                    showMenu();
+                    msgEl.classList.add('hidden');
+                    loginBtn.innerText = i18n[state.lang].loginBtn;
+                    loginBtn.disabled = false;
+                }, 1200);
+
+            } catch (error) {
+                console.error("Load Failed:", error);
+                msgEl.innerText = state.lang === 'zh' ? "網路連線失敗，請檢查 API 網址。" : "Network error, check API URL.";
+                msgEl.classList.add('bg-red-100', 'text-red-600', 'border-red-300');
+                msgEl.classList.remove('hidden');
+                loginBtn.innerText = i18n[state.lang].loginBtn;
+                loginBtn.disabled = false;
+            }
+        }
+
+        async function apiSaveData() { 
+            if (!GOOGLE_SHEET_API_URL || !state.accountId) return; 
+            try { 
+                const url = `${GOOGLE_SHEET_API_URL}?action=save&name=${encodeURIComponent(state.accountId)}&password=${encodeURIComponent(state.password)}&money=${state.money}&day=${state.day}&unlocked=${encodeURIComponent(JSON.stringify(state.unlocked))}`;
+                await fetch(url); 
+            } catch (e) { console.error("Save Failed:", e); } 
+        }
+
+        function logout() {
+            state.username = ""; state.accountId = ""; state.password = "";
+            document.getElementById('username-input').value = "";
+            document.getElementById('password-input').value = "";
+            document.getElementById('user-display').classList.add('hidden');
+            
+            ['screen-menu', 'screen-day-end', 'screen-shop', 'screen-game'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('screen-login').classList.remove('hidden');
+        }
+
+        function showMenu() { 
+            clearInterval(state.timerInterval); clearTimeout(state.customerTimer); state.isSpawningCustomer = false;
+            document.getElementById('game-stats').classList.add('hidden'); document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('menu-screens').classList.remove('hidden');
+            ['screen-login', 'screen-menu', 'screen-day-end', 'screen-shop'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('menu-day').innerText = state.day;
+            document.getElementById('screen-menu').classList.remove('hidden');
+            
+            const forceBtn = document.getElementById('btn-force-end');
+            if(forceBtn) forceBtn.classList.add('hidden');
+        }
+
+        function switchStation(target) {
+            ['order', 'grill', 'build'].forEach(s => {
+                document.getElementById(`station-${s}`).classList.add('hidden');
+                document.getElementById(`tab-${s}`).classList.remove('active');
+            });
+            document.getElementById(`station-${target}`).classList.remove('hidden');
+            document.getElementById(`tab-${target}`).classList.add('active');
+        }
+
+        function updateStatsUI() {
+            if (document.getElementById('money-display')) document.getElementById('money-display').innerText = state.money.toFixed(2);
+            if (document.getElementById('register-money')) document.getElementById('register-money').innerText = state.money.toFixed(2);
+            if (document.getElementById('day-display')) document.getElementById('day-display').innerText = state.day;
+            
+            ['meat_raw', 'meat_rare', 'meat_well', 'meat_charred', 'meat_burnt'].forEach(type => {
+                const count = state.meatInventory[type];
+                const countEl = document.getElementById(`count-${type}`);
+                const plateEl = document.getElementById(`plate-${type}`);
+                if (countEl) countEl.innerText = count;
+                if (plateEl) {
+                    if (count > 0) plateEl.classList.remove('opacity-50');
+                    else plateEl.classList.add('opacity-50');
+                }
+            });
+        }
+
+        function syncUnlockedUI() {
+            const elements = ['tomato', 'lettuce', 'onion', 'pickle', 'cheese'];
+            elements.forEach(item => {
+                const el = document.getElementById(`shelf-${item}`);
+                if(el) state.unlocked.includes(item) ? el.classList.remove('hidden') : el.classList.add('hidden');
+            });
+            const sauces = ['sauce_ketchup', 'sauce_mustard', 'sauce_mayo', 'sauce_bbq'];
+            sauces.forEach(sauce => {
+                const el = document.getElementById(`bottle-${sauce}`);
+                if(el) state.unlocked.includes(sauce) ? el.classList.remove('hidden') : el.classList.add('hidden');
+            });
+        }
+
+        // ==========================================
+        // 🌟 遊戲核心邏輯
+        // ==========================================
+        let forceEndTimeout;
+        function forceEndDay(btn) {
+            if(btn.innerText.includes("?") || btn.innerText.includes("確定")) {
+                clearTimeout(forceEndTimeout);
+                clearInterval(state.timerInterval);
+                clearTimeout(state.customerTimer);
+                state.customersSpawned = state.customersToday;
+                state.activeOrders = [];
+                state.waitingCustomers = [];
+                
+                btn.innerText = i18n[state.lang].forceEnd;
+                btn.classList.remove('bg-yellow-500', 'text-black', 'border-yellow-700');
+                btn.classList.add('bg-red-600', 'text-white', 'border-red-800');
+                endDay();
+            } else {
+                btn.innerText = state.lang === 'zh' ? "確定結束?" : "Sure?";
+                btn.classList.remove('bg-red-600', 'text-white', 'border-red-800');
+                btn.classList.add('bg-yellow-500', 'text-black', 'border-yellow-700');
+                forceEndTimeout = setTimeout(() => {
+                    btn.innerText = i18n[state.lang].forceEnd;
+                    btn.classList.remove('bg-yellow-500', 'text-black', 'border-yellow-700');
+                    btn.classList.add('bg-red-600', 'text-white', 'border-red-800');
+                }, 3000);
+            }
+        }
+
+        function startDay() { 
+            state.moneyEarnedToday = 0;
+            state.activeOrders = []; state.currentViewingOrderId = null;
+            state.customersSpawned = 0; state.customersServed = 0;
+            state.waitingCustomers = []; state.isSpawningCustomer = false;
+            
+            state.customersToday = Math.min(2 + Math.floor(state.day / 2), 8);
+            
+            document.getElementById('menu-screens').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('game-stats').classList.remove('hidden');
+            
+            const forceBtn = document.getElementById('btn-force-end');
+            if(forceBtn) {
+                forceBtn.classList.remove('hidden');
+                forceBtn.innerText = i18n[state.lang].forceEnd;
+                forceBtn.classList.remove('bg-yellow-500', 'text-black', 'border-yellow-700');
+                forceBtn.classList.add('bg-red-600', 'text-white', 'border-red-800');
+            }
+
+            state.grillPatties = Array(12).fill(null); 
+            state.playerBurger = [];
+            state.meatInventory = { meat_raw: 0, meat_rare: 0, meat_well: 0, meat_charred: 0, meat_burnt: 0 };
+            state.isTicketHidden = false;
+            document.getElementById('active-ticket').classList.remove('hidden-ticket');
+            
+            syncUnlockedUI();
+            renderOrderStation(); renderTicketLine(); renderGrill(); renderBurger(); updateStatsUI();
+            
+            clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(gameLoop, 100);
+            
+            switchStation('order');
+            scheduleNextCustomer();
+        }
+
+        function scheduleNextCustomer() {
+            if(state.customersSpawned >= state.customersToday) return; 
+            if(state.waitingCustomers.length >= 3) return; 
+            if(state.isSpawningCustomer) return; 
+            
+            state.isSpawningCustomer = true;
+            const delay = Math.random() * 3000 + 2000;
+            state.customerTimer = setTimeout(() => {
+                state.isSpawningCustomer = false;
+                state.customersSpawned++;
+                state.waitingCustomers.push({ id: Date.now().toString() + Math.floor(Math.random()*1000), patience: 100 });
+                renderOrderStation();
+                scheduleNextCustomer();
+            }, delay);
+        }
+
+        function renderOrderStation() {
+            const queue = document.getElementById('customers-queue'); queue.innerHTML = '';
+            if (state.waitingCustomers.length === 0 && state.customersSpawned < state.customersToday) {
+                document.getElementById('waiting-msg').classList.remove('hidden');
+            } else {
+                document.getElementById('waiting-msg').classList.add('hidden');
+            }
+
+            state.waitingCustomers.forEach(c => {
+                const div = document.createElement('div');
+                div.className = "relative flex flex-col items-center mt-auto";
+                div.innerHTML = `
+                    <div class="w-24 h-4 bg-gray-800 rounded-full mb-2 border-2 border-gray-600 overflow-hidden shadow-md">
+                        <div id="patience-bar-${c.id}" class="h-full bg-green-500" style="width: ${c.patience}%"></div>
+                    </div>
+                    <div class="speech-bubble-small absolute -top-10 -right-8 bg-white border-2 border-gray-800 rounded-lg px-2 py-1 text-sm font-bold cursor-pointer hover:bg-blue-100 z-20" onclick="takeOrder('${c.id}')">${i18n[state.lang].takeOrderBtn}</div>
+                    <div class="w-24 h-36 bg-gray-300 border-4 border-gray-600 rounded-t-[40px] flex justify-center pt-4 text-4xl shadow-lg">👤</div>
+                `;
+                queue.appendChild(div);
+            });
+        }
+
+        function takeOrder(customerId) {
+            const customerIdx = state.waitingCustomers.findIndex(c => c.id === customerId);
+            if(customerIdx === -1) return;
+            
+            const orderScore = Math.max(state.waitingCustomers[customerIdx].patience, 0);
+            state.waitingCustomers.splice(customerIdx, 1);
+            renderOrderStation();
+            
+            let orderItems = ['bun_bottom'];
+            
+            const allowedMeats = ['meat_rare', 'meat_well', 'meat_charred'];
+            const meatCount = Math.min(Math.floor(Math.random() * (1 + Math.floor(state.day / 3))) + 1, 3);
+            for(let i=0; i<meatCount; i++) {
+                orderItems.push(allowedMeats[Math.floor(Math.random() * allowedMeats.length)]);
+                if (state.unlocked.includes('cheese') && Math.random() > 0.5) orderItems.push('cheese');
+            }
+
+            const availableVeggies = ['lettuce', 'tomato', 'onion', 'pickle'].filter(v => state.unlocked.includes(v));
+            if (availableVeggies.length > 0) {
+                const vegCount = Math.floor(Math.random() * 3) + 1;
+                for(let i=0; i<vegCount; i++) orderItems.push(availableVeggies[Math.floor(Math.random() * availableVeggies.length)]);
+            }
+
+            const availableSauces = ['sauce_ketchup', 'sauce_mustard', 'sauce_mayo', 'sauce_bbq'].filter(s => state.unlocked.includes(s));
+            if (availableSauces.length > 0 && Math.random() > 0.4) {
+                const sauceCount = Math.floor(Math.random() * 2) + 1;
+                for(let i=0; i<sauceCount; i++) orderItems.push(availableSauces[Math.floor(Math.random() * availableSauces.length)]);
+            }
+
+            orderItems.push('bun_top');
+            
+            const newOrder = {
+                id: Date.now() + Math.random(),
+                ticketNum: state.globalTicketCount++,
+                items: orderItems,
+                maxWait: 60,
+                waitTime: 60,
+                orderScore: orderScore 
+            };
+            
+            state.activeOrders.push(newOrder);
+            if(!state.currentViewingOrderId) state.currentViewingOrderId = newOrder.id;
+            
+            renderTicketLine();
+            scheduleNextCustomer();
+        }
+
+        function gameLoop() {
+            let needsTicketProgressUpdate = false;
+            let needsGrillFullRender = false;
+            let needsGrillProgressUpdate = false;
+
+            state.waitingCustomers.forEach(c => {
+                if (c.patience > 0) {
+                    c.patience -= 0.15; 
+                    const bar = document.getElementById(`patience-bar-${c.id}`);
+                    if (bar) {
+                        bar.style.width = `${Math.max(c.patience, 0)}%`;
+                        bar.style.backgroundColor = c.patience > 50 ? '#22c55e' : c.patience > 20 ? '#f59e0b' : '#ef4444';
+                    }
+                }
+            });
+
+            state.activeOrders.forEach(order => {
+                if(order.waitTime > 0) {
+                    order.waitTime -= 0.1;
+                    needsTicketProgressUpdate = true;
+                }
+            });
+
+            let hasMeatCooking = false;
+            for(let i=0; i<12; i++) {
+                let patty = state.grillPatties[i];
+                if(patty) {
+                    hasMeatCooking = true;
+                    patty.tick += 0.1;
+                    let oldStatus = patty.status;
+                    if (patty.tick > 20) patty.status = 'meat_burnt'; 
+                    else if (patty.tick > 15) patty.status = 'meat_charred'; 
+                    else if (patty.tick > 10) patty.status = 'meat_well'; 
+                    else if (patty.tick > 5) patty.status = 'meat_rare'; 
+                    else patty.status = 'meat_raw';
+                    
+                    if(oldStatus !== patty.status) needsGrillFullRender = true;
+                }
+            }
+
+            if (hasMeatCooking) needsGrillProgressUpdate = true;
+
+            if(needsTicketProgressUpdate) updateTicketProgress();
+
+            if(needsGrillFullRender) renderGrill(); 
+            else if (needsGrillProgressUpdate) updateGrillProgress();
+        }
+
+        function updateTicketProgress() {
+            state.activeOrders.forEach(order => {
+                const bar = document.getElementById(`ticket-bar-${order.id}`);
+                if(bar) {
+                    const pct = order.waitTime / order.maxWait;
+                    let color = '#22c55e'; if(pct < 0.5) color = '#f59e0b'; if(pct < 0.2) color = '#ef4444';
+                    bar.style.backgroundColor = color;
+                }
+            });
+        }
+
+        function updateGrillProgress() {
+            for(let i=0; i<12; i++) {
+                let patty = state.grillPatties[i];
+                if(patty) {
+                    const bar = document.getElementById(`cook-bar-${patty.id}`);
+                    if(bar) bar.style.width = `${Math.min((patty.tick / 25) * 100, 100)}%`;
+                }
+            }
+        }
+
+        // ==========================================
+        // 🌟 單據滑軌 UI
+        // ==========================================
+        function toggleTicket() {
+            state.isTicketHidden = !state.isTicketHidden;
+            const ticket = document.getElementById('active-ticket');
+            if (state.isTicketHidden) ticket.classList.add('hidden-ticket');
+            else ticket.classList.remove('hidden-ticket');
+        }
+
+        function renderTicketLine() {
+            const container = document.getElementById('tickets-container');
+            container.innerHTML = "";
+            
+            state.activeOrders.forEach(order => {
+                const tab = document.createElement('div');
+                const isActive = state.currentViewingOrderId === order.id;
+                tab.className = `ticket-tab ${isActive ? 'active' : ''}`;
+                
+                tab.onmousedown = () => { 
+                    state.currentViewingOrderId = order.id; 
+                    state.isTicketHidden = false; 
+                    document.getElementById('active-ticket').classList.remove('hidden-ticket');
+                    renderTicketLine(); 
+                };
+                
+                const pct = order.waitTime / order.maxWait;
+                let color = '#22c55e'; if(pct < 0.5) color = '#f59e0b'; if(pct < 0.2) color = '#ef4444';
+                
+                tab.innerHTML = `
+                    <div id="ticket-bar-${order.id}" class="absolute top-0 w-full h-1.5" style="background-color: ${color}"></div>
+                    <div class="text-sm font-black mb-1">${String(order.ticketNum).padStart(2, '0')}</div>
+                `;
+                container.appendChild(tab);
+            });
+
+            renderActiveTicket();
+        }
+
+        function renderActiveTicket() {
+            const ticketEl = document.getElementById('active-ticket');
+            const list = document.getElementById('order-list');
+            
+            if(!state.currentViewingOrderId || state.activeOrders.length === 0) {
+                ticketEl.classList.add('hidden');
+                return;
+            }
+
+            const order = state.activeOrders.find(o => o.id === state.currentViewingOrderId);
+            if(!order) return;
+
+            ticketEl.classList.remove('hidden');
+            document.getElementById('ticket-id').innerText = String(order.ticketNum).padStart(2, '0');
+            
+            list.innerHTML = "";
+            order.items.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "relative w-full flex justify-center";
+                const mapInfo = ingredientsMap[item];
+                
+                let extraLabel = '';
+                if(item.startsWith('meat') && mapInfo && mapInfo.label) {
+                    extraLabel = `<span class="absolute left-[65%] top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-1.5 py-0.5 rounded text-[11px] font-bold whitespace-nowrap shadow border border-gray-600 z-50">${mapInfo.label[state.lang]}</span>`;
+                }
+
+                li.innerHTML = `<div class="${mapInfo ? mapInfo.uiClass : item} origin-center flex justify-center items-center text-white font-bold text-xl drop-shadow-lg pb-1">${mapInfo && mapInfo.overlay ? mapInfo.overlay : ''}</div>${extraLabel}`;
+                list.prepend(li);
+            });
+        }
+
+        // ==========================================
+        // 🔥 煎肉台與 🍔 組裝台 控制
+        // ==========================================
+        function addRawMeat() {
+            let emptyIdx = state.grillPatties.findIndex(p => p === null);
+            if (emptyIdx !== -1) {
+                state.grillPatties[emptyIdx] = { id: state.nextPattyId++, tick: 0, status: 'meat_raw' };
+                renderGrill();
+            }
+        }
+
+        function collectMeat(idx) {
+            if(state.grillPatties[idx]) {
+                const status = state.grillPatties[idx].status;
+                state.meatInventory[status]++; 
+                state.grillPatties[idx] = null; 
+                renderGrill(); updateStatsUI(); 
+            }
+        }
+
+        function renderGrill() {
+            const spots = document.getElementById('grill-spots'); spots.innerHTML = "";
+            
+            for(let i=0; i<12; i++) {
+                let patty = state.grillPatties[i];
+                let div = document.createElement('div');
+                
+                if (patty) {
+                    div.className = "grill-patty shadow-lg";
+                    let statusText = ''; let grillColor = '#3b82f6';
+                    if (patty.status === 'meat_raw') { div.style.backgroundColor = "#FCA5A5"; grillColor = '#3b82f6'; }
+                    if (patty.status === 'meat_rare') { div.style.backgroundColor = "#A0522D"; statusText = '<span class="absolute -top-6 text-pink-300 font-bold text-sm drop-shadow-md">🕒 微熟</span>'; grillColor = '#fca5a5'; }
+                    if (patty.status === 'meat_well') { div.style.backgroundColor = "#5C3A21"; statusText = '<span class="absolute -top-6 text-green-400 font-bold text-sm drop-shadow-md">🕕 全熟</span><div class="absolute -top-4 right-0 animate-bounce">♨️</div>'; grillColor = '#22c55e'; }
+                    if (patty.status === 'meat_charred') { div.style.backgroundColor = "#3E2723"; statusText = '<span class="absolute -top-6 text-orange-400 font-bold text-sm drop-shadow-md">🕘 稍焦</span>'; grillColor = '#f97316'; }
+                    if (patty.status === 'meat_burnt') { div.style.backgroundColor = "#1e293b"; statusText = '<span class="absolute -top-6 text-gray-500 font-bold text-sm drop-shadow-md">燒焦</span><div class="absolute -top-4 right-0 animate-pulse text-2xl">🔥</div>'; grillColor = 'black'; }
+
+                    div.onmousedown = () => collectMeat(i);
+
+                    let innerHtml = `
+                        ${statusText}
+                        <div class="cook-bar-container">
+                            <div id="cook-bar-${patty.id}" class="cook-bar" style="width: ${Math.min((patty.tick / 25) * 100, 100)}%; background-color: ${grillColor};"></div>
+                        </div>
+                    `;
+
+                    if(patty.status === 'meat_well' || patty.status === 'meat_charred'){
+                        innerHtml += `<div class="absolute inset-0 rounded-full" style="background: repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(0,0,0,0.4) 15px, rgba(0,0,0,0.4) 18px);"></div>`;
+                    }
+                    div.innerHTML = innerHtml;
+                } else {
+                    div.className = "grill-slot-empty";
+                }
+                spots.appendChild(div);
+            }
+        }
+
+        function takeCookedMeat(type) { 
+            if(state.meatInventory[type] <= 0) return; 
+            state.meatInventory[type]--; 
+            addIngredient(type); 
+            updateStatsUI(); 
+        }
+        
+        function addIngredient(item) { if (state.playerBurger.length >= 15) return; state.playerBurger.push(item); renderBurger(); }
+        function clearBurger() { state.playerBurger = []; renderBurger(); }
+
+        function renderBurger() {
+            const stack = document.getElementById('burger-stack'); stack.innerHTML = "";
+            state.playerBurger.forEach((item) => {
+                const div = document.createElement('div'); div.className = `ingredient ${item}`;
+                if(!item.startsWith('sauce_') && item !== 'bun_bottom' && item !== 'bun_top') {
+                    div.style.transform = `translateX(${(Math.random() - 0.5) * 8}px) rotate(${(Math.random() - 0.5) * 4}deg)`;
+                }
+                div.animate([{ opacity: 0, transform: 'translateY(-30px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 150 });
+                stack.appendChild(div);
+            });
+        }
+
+        // ==========================================
+        // 🛎️ 終極嚴苛評分邏輯 
+        // ==========================================
+        function serveBurger() {
+            if(!state.currentViewingOrderId) return; 
+            
+            if(state.playerBurger.length === 0) {
+                const popup = document.getElementById('feedback-popup');
+                popup.innerHTML = `<div class="bg-red-600 text-white font-bold text-2xl py-2 px-6 rounded-full shadow-lg border-4 border-white">${i18n[state.lang].emptyBurgerWarning}</div>`;
+                popup.style.opacity = '1';
+                popup.classList.remove('feedback-anim'); void popup.offsetWidth; popup.classList.add('feedback-anim');
+                setTimeout(() => { popup.style.opacity = '0'; popup.classList.remove('feedback-anim'); popup.innerHTML = ''; }, 2000); 
+                return;
+            }
+
+            const orderIndex = state.activeOrders.findIndex(o => o.id === state.currentViewingOrderId);
+            if(orderIndex === -1) return;
+            const order = state.activeOrders[orderIndex];
+            
+            const target = order.items; const player = state.playerBurger;
+            
+            let buildScore = 100; 
+            let grillScore = 100; 
+            let orderScore = Math.round(order.orderScore); 
+
+            let hasMeatInOrder = target.some(t => t.startsWith('meat'));
+            let playerHasMeat = player.some(p => p.startsWith('meat'));
+
+            buildScore -= Math.abs(target.length - player.length) * 20;
+
+            const maxLen = Math.max(target.length, player.length);
+            for(let i=0; i<maxLen; i++) {
+                let t = target[i] || 'missing'; 
+                let p = player[i] || 'missing';
+                
+                let isTargetMeat = t.startsWith('meat');
+                let isPlayerMeat = p.startsWith('meat');
+
+                if (t === p && t !== 'missing') {
+                    continue;
+                }
+
+                if (isTargetMeat) {
+                    if (p === 'missing') {
+                        buildScore -= 30; 
+                        grillScore -= 50; 
+                    } else if (p === 'meat_raw' || p === 'meat_burnt') {
+                        grillScore -= 100; 
+                        buildScore -= 20; 
+                    } else if (isPlayerMeat) {
+                        grillScore -= 70; 
+                        buildScore -= 10;
+                    } else {
+                        buildScore -= 40; 
+                    }
+                } else if (isPlayerMeat) {
+                    buildScore -= 40; 
+                    if (p === 'meat_raw' || p === 'meat_burnt') grillScore -= 50;
+                    else grillScore -= 30; 
+                } else {
+                    buildScore -= 30; 
+                }
+            }
+            
+            if (hasMeatInOrder && !playerHasMeat) grillScore = 0; 
+            if (!hasMeatInOrder) grillScore = 100; 
+            
+            if(buildScore < 0) buildScore = 0; if(grillScore < 0) grillScore = 0;
+            let finalScore = Math.round((buildScore + grillScore + orderScore) / 3); 
+
+            let tip = 0;
+            if (finalScore >= 50) {
+                const scoreMult = Math.pow(finalScore / 100, 3);
+                const timeMult = Math.max(order.waitTime / order.maxWait, 0.2); 
+                tip = 2.00 + (20.00 * scoreMult * timeMult);
+            }
+
+            state.money += tip;
+            state.moneyEarnedToday += tip;
+            
+            showDetailedFeedback(buildScore, grillScore, orderScore, finalScore, tip); 
+            updateStatsUI();
+            
+            state.activeOrders.splice(orderIndex, 1);
+            state.currentViewingOrderId = state.activeOrders.length > 0 ? state.activeOrders[0].id : null;
+            state.customersServed++;
+            
+            renderTicketLine();
+            setTimeout(() => { clearBurger(); }, 800);
+
+            if (state.activeOrders.length === 0 && state.waitingCustomers.length === 0 && state.customersSpawned >= state.customersToday) {
+                setTimeout(endDay, 2500); 
+            }
+        }
+
+        function showDetailedFeedback(bScore, gScore, oScore, totalScore, tipAmount) {
+            const popup = document.getElementById('feedback-popup'); 
+            
+            let tipText = tipAmount > 0 ? `+$${tipAmount.toFixed(2)}` : "No Tip!";
+            let tipColor = tipAmount > 0 ? "text-green-500" : "text-red-500";
+            let titleColor = tipAmount > 0 ? "text-blue-600" : "text-red-600";
+
+            popup.innerHTML = `
+                <div class="bg-white border-4 border-gray-800 rounded-xl p-5 text-center shadow-2xl min-w-[220px] text-gray-800 text-lg mx-auto">
+                    <h3 class="text-4xl font-black mb-2 ${titleColor}">${totalScore}%</h3>
+                    <div class="flex justify-between font-bold border-b border-gray-300 pb-1 mb-1">
+                        <span>${i18n[state.lang].scoreOrder}:</span><span>${oScore}%</span>
+                    </div>
+                    <div class="flex justify-between font-bold border-b border-gray-300 pb-1 mb-1">
+                        <span>${i18n[state.lang].scoreBuild}:</span><span>${bScore}%</span>
+                    </div>
+                    <div class="flex justify-between font-bold border-b border-gray-300 pb-1 mb-2">
+                        <span>${i18n[state.lang].scoreGrill}:</span><span>${gScore}%</span>
+                    </div>
+                    <div class="text-3xl ${tipColor} font-black mt-2">${i18n[state.lang].tipIs}: ${tipText}</div>
+                </div>
+            `;
+            
+            popup.style.opacity = '1';
+            popup.classList.remove('feedback-anim'); 
+            void popup.offsetWidth; 
+            popup.classList.add('feedback-anim');
+            
+            setTimeout(() => {
+                popup.style.opacity = '0';
+                popup.classList.remove('feedback-anim');
+                popup.innerHTML = '';
+            }, 2400); 
+        }
+
+        function endDay() {
+            clearInterval(state.timerInterval);
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('menu-screens').classList.remove('hidden');
+            ['screen-login', 'screen-menu', 'screen-shop'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            
+            const forceBtn = document.getElementById('btn-force-end');
+            if(forceBtn) forceBtn.classList.add('hidden');
+
+            document.getElementById('result-day').innerText = state.day;
+            document.getElementById('res-customers').innerText = state.customersServed;
+            document.getElementById('res-revenue').innerText = `+$${state.moneyEarnedToday.toFixed(2)}`;
+            document.getElementById('res-total-money').innerText = state.money.toFixed(2);
+            
+            document.getElementById('screen-day-end').classList.remove('hidden');
+            state.day++; 
+
+            if (GOOGLE_SHEET_API_URL) {
+                document.getElementById('loading-db').classList.remove('hidden');
+                apiSaveData();
+                setTimeout(() => document.getElementById('loading-db').classList.add('hidden'), 1500);
+            }
+        }
+
+        // ==========================================
+        // 🛒 商店系統
+        // ==========================================
+        function openShop() {
+            ['screen-login', 'screen-menu', 'screen-day-end'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('shop-money').innerText = state.money.toFixed(2);
+            renderShopItems();
+            document.getElementById('screen-shop').classList.remove('hidden');
+        }
+
+        function renderShopItems() {
+            const container = document.getElementById('shop-container');
+            container.innerHTML = "";
+            
+            state.shopItems.forEach(item => {
+                const isOwned = state.unlocked.includes(item.id);
+                const canAfford = state.money >= item.price;
+                const div = document.createElement('div');
+                div.className = `shop-item ${isOwned ? 'owned' : canAfford ? '' : 'locked'}`;
+                
+                div.innerHTML = `
+                    <div class="h-16 flex items-center justify-center">
+                        <div class="${item.uiClass}"></div>
+                    </div>
+                    <div class="font-bold mt-2">${item.name[state.lang]}</div>
+                    <div class="text-sm font-black text-green-700 my-1">$${item.price.toFixed(2)}</div>
+                    <button class="px-4 py-1 text-sm font-bold text-white rounded ${isOwned ? 'bg-green-500' : canAfford ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-400'}"
+                        ${isOwned || !canAfford ? 'disabled' : ''}>
+                        ${isOwned ? i18n[state.lang].owned : canAfford ? i18n[state.lang].buy : i18n[state.lang].locked}
+                    </button>
+                `;
+                
+                if(!isOwned && canAfford) {
+                    div.onclick = () => {
+                        state.money -= item.price;
+                        state.unlocked.push(item.id);
+                        document.getElementById('shop-money').innerText = state.money.toFixed(2);
+                        renderShopItems(); 
+                        apiSaveData(); 
+                    };
+                }
+                container.appendChild(div);
+            });
+        }
+
+        updateLanguageUI();
+    </script>
+</body>
+</html>
